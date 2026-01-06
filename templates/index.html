@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prospecteur Web - Trouvez des entreprises sans site web</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- En-tête -->
+        <header class="header">
+            <h1>🎯 Prospecteur Web</h1>
+            <p class="subtitle">Trouvez des entreprises qui ont besoin de vos services de création de sites web</p>
+        </header>
+
+        <!-- Formulaire de recherche -->
+        <div class="card">
+            <h2>🔍 Rechercher des entreprises</h2>
+            <form id="searchForm">
+                <div class="form-group">
+                    <label for="secteur">Secteur d'activité (optionnel)</label>
+                    <input
+                        type="text"
+                        id="secteur"
+                        name="secteur"
+                        placeholder="Ex: boulangerie, coiffure, plomberie, restaurant..."
+                    >
+                    <small>Laissez vide pour chercher tous les types d'entreprises</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="type_entreprise">Type d'entreprise</label>
+                    <select id="type_entreprise" name="type_entreprise">
+                        <option value="">Tous les types</option>
+                        <option value="PME" selected>PME (Petites et Moyennes Entreprises)</option>
+                        <option value="artisan">Artisans uniquement</option>
+                        <option value="petite">Très petites entreprises (0-9 salariés)</option>
+                    </select>
+                    <small>Cibler les petites structures</small>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="code_postal">Code postal (recommandé)</label>
+                        <input
+                            type="text"
+                            id="code_postal"
+                            name="code_postal"
+                            placeholder="Ex: 75001, 35000..."
+                        >
+                        <small>Filtre géographique précis</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ville">Ville (optionnel)</label>
+                        <input
+                            type="text"
+                            id="ville"
+                            name="ville"
+                            placeholder="Ex: Paris, Lyon..."
+                        >
+                        <small>Recherche textuelle (moins précis)</small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="limite">Nombre d'entreprises</label>
+                    <select id="limite" name="limite">
+                        <option value="25">25 entreprises</option>
+                        <option value="50" selected>50 entreprises</option>
+                        <option value="75">75 entreprises</option>
+                        <option value="100">100 entreprises</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="btnRechercher">
+                    <span class="btn-text">Rechercher</span>
+                    <span class="btn-loader" style="display: none;">⏳ Recherche en cours...</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Zone de résultats -->
+        <div id="resultsSection" style="display: none;">
+            <!-- Statistiques -->
+            <div class="stats-container" id="statsContainer"></div>
+
+            <!-- Actions -->
+            <div class="actions-bar">
+                <button class="btn btn-secondary" id="btnVerifierSites">
+                    <span class="btn-text">🌐 Vérifier les sites web</span>
+                    <span class="btn-loader" style="display: none;">⏳ Vérification...</span>
+                </button>
+                <button class="btn btn-success" id="btnExporter" style="display: none;">
+                    📥 Exporter les entreprises sans site (CSV)
+                </button>
+            </div>
+
+            <!-- Tableau des résultats -->
+            <div class="card">
+                <h2>📊 Résultats</h2>
+                <div class="table-container">
+                    <table id="resultsTable">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Ville</th>
+                                <th>Code Postal</th>
+                                <th>Activité</th>
+                                <th>Site Web</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Zone de chargement -->
+        <div id="loadingSection" style="display: none;" class="loading">
+            <div class="loader"></div>
+            <p id="loadingText">Chargement...</p>
+        </div>
+
+        <!-- Zone d'erreur -->
+        <div id="errorSection" style="display: none;" class="error">
+            <h3>❌ Erreur</h3>
+            <p id="errorText"></p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>Données fournies par <a href="https://recherche-entreprises.api.gouv.fr" target="_blank">API Recherche Entreprises</a> (data.gouv.fr)</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
