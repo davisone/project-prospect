@@ -119,7 +119,7 @@ def trouver_site_entreprise(nom_entreprise):
     return False, None
 
 
-def rechercher_entreprises(secteur, ville="", code_postal="", limite=50, type_entreprise=""):
+def rechercher_entreprises(secteur, ville="", code_postal="", limite=50):
     """
     Recherche des entreprises via l'API Recherche Entreprises (data.gouv.fr)
     """
@@ -144,16 +144,6 @@ def rechercher_entreprises(secteur, ville="", code_postal="", limite=50, type_en
     # Le code postal est un filtre géographique PRÉCIS (recommandé)
     if code_postal:
         params["code_postal"] = code_postal
-
-    # Filtrer par type d'entreprise
-    if type_entreprise == "PME":
-        params["categorie_entreprise"] = "PME"
-    elif type_entreprise == "artisan":
-        # Les artisans ont une activité enregistrée au répertoire des métiers
-        params["est_entrepreneur_individuel"] = "true"
-    elif type_entreprise == "petite":
-        # Très petites entreprises: 0-9 salariés (tranches 00, 01, 02, 03)
-        params["tranche_effectif_salarie"] = "00,01,02,03"
 
     try:
         print(f"[DEBUG] Requête API: {API_SIRENE}?{urlencode(params)}", file=sys.stderr, flush=True)
@@ -306,14 +296,13 @@ def api_rechercher():
     ville = data.get('ville', '').strip()
     code_postal = data.get('code_postal', '').strip()
     limite = int(data.get('limite', 50))
-    type_entreprise = data.get('type_entreprise', '')
 
     # Au moins un critère de recherche doit être fourni
     if not secteur and not ville and not code_postal:
         return jsonify({'success': False, 'error': 'Veuillez indiquer au moins un critère de recherche (secteur, ville ou code postal)'})
 
     # Rechercher les entreprises
-    resultat = rechercher_entreprises(secteur, ville, code_postal, limite, type_entreprise)
+    resultat = rechercher_entreprises(secteur, ville, code_postal, limite)
 
     return jsonify(resultat)
 
@@ -440,32 +429,28 @@ def api_exporter():
     # Vérifier si on a des données enrichies Google
     has_enriched_data = any(ent.get('telephone') or ent.get('note') for ent in entreprises)
 
+    # Vérifier si on a des données de suivi
+    has_suivi_data = any(ent.get('suivi') for ent in entreprises)
+
     # En-têtes (adapter selon le type de données)
+    headers = [
+        'Nom',
+        'SIRET',
+        'Adresse',
+        'Code Postal',
+        'Ville',
+        'Activité',
+        'A un site web',
+        'URL du site'
+    ]
+
     if has_enriched_data:
-        writer.writerow([
-            'Nom',
-            'SIRET',
-            'Adresse',
-            'Code Postal',
-            'Ville',
-            'Activité',
-            'A un site web',
-            'URL du site',
-            'Téléphone',
-            'Note Google',
-            'Nombre d\'avis'
-        ])
-    else:
-        writer.writerow([
-            'Nom',
-            'SIRET',
-            'Adresse',
-            'Code Postal',
-            'Ville',
-            'Activité',
-            'A un site web',
-            'URL du site'
-        ])
+        headers.extend(['Téléphone', 'Note Google', 'Nombre d\'avis'])
+
+    if has_suivi_data:
+        headers.extend(['Statut suivi', 'Notes suivi', 'Dernier contact'])
+
+    writer.writerow(headers)
 
     # Données
     for ent in entreprises:
@@ -486,6 +471,33 @@ def api_exporter():
                 ent.get('note', ''),
                 ent.get('nombre_avis', '')
             ])
+
+        if has_suivi_data:
+            suivi = ent.get('suivi', {})
+            if suivi:
+                # Mapper les statuts
+                statut_labels = {
+                    'a_demarcher': 'À démarcher',
+                    'contacte': 'Contacté',
+                    'negociation': 'En négociation',
+                    'interesse': 'Intéressé',
+                    'refuse': 'Refusé',
+                    'client': 'Client'
+                }
+                statut = statut_labels.get(suivi.get('statut', ''), '')
+                notes = suivi.get('notes', '')
+                dernier_contact = suivi.get('dernierContact', '')
+                # Formater la date si disponible
+                if dernier_contact:
+                    from datetime import datetime
+                    try:
+                        date_obj = datetime.fromisoformat(dernier_contact.replace('Z', '+00:00'))
+                        dernier_contact = date_obj.strftime('%d/%m/%Y %H:%M')
+                    except:
+                        pass
+                row.extend([statut, notes, dernier_contact])
+            else:
+                row.extend(['', '', ''])
 
         writer.writerow(row)
 

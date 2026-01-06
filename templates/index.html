@@ -14,32 +14,18 @@
             <p class="subtitle">Trouvez des entreprises qui ont besoin de vos services de création de sites web</p>
         </header>
 
+        <!-- Onglets -->
+        <div class="tabs">
+            <button class="tab-button active" onclick="changerOnglet('recherche')">🔍 Recherche</button>
+            <button class="tab-button" onclick="changerOnglet('suivi')">📊 Suivi & Pipeline</button>
+        </div>
+
+        <!-- Contenu Onglet Recherche -->
+        <div id="onglet-recherche" class="tab-content active">
         <!-- Formulaire de recherche -->
         <div class="card">
             <h2>🔍 Rechercher des entreprises</h2>
             <form id="searchForm">
-                <div class="form-group">
-                    <label for="secteur">Secteur d'activité (optionnel)</label>
-                    <input
-                        type="text"
-                        id="secteur"
-                        name="secteur"
-                        placeholder="Ex: boulangerie, coiffure, plomberie, restaurant..."
-                    >
-                    <small>Laissez vide pour chercher tous les types d'entreprises</small>
-                </div>
-
-                <div class="form-group">
-                    <label for="type_entreprise">Type d'entreprise</label>
-                    <select id="type_entreprise" name="type_entreprise">
-                        <option value="">Tous les types</option>
-                        <option value="PME" selected>PME (Petites et Moyennes Entreprises)</option>
-                        <option value="artisan">Artisans uniquement</option>
-                        <option value="petite">Très petites entreprises (0-9 salariés)</option>
-                    </select>
-                    <small>Cibler les petites structures</small>
-                </div>
-
                 <div class="form-row">
                     <div class="form-group">
                         <label for="code_postal">Code postal (recommandé)</label>
@@ -95,6 +81,16 @@
                 <button class="btn btn-success" id="btnExporter" style="display: none;">
                     📥 Exporter les entreprises sans site (CSV)
                 </button>
+                <select id="filtreSuivi" style="padding: 14px; border-radius: 8px; border: 1px solid #cbd5e0; font-size: 1rem; min-width: 200px;">
+                    <option value="">Tous les statuts</option>
+                    <option value="a_demarcher">À démarcher</option>
+                    <option value="contacte">Contacté</option>
+                    <option value="negociation">En négociation</option>
+                    <option value="interesse">Intéressé</option>
+                    <option value="refuse">Refusé</option>
+                    <option value="client">Client</option>
+                    <option value="sans_suivi">Sans suivi</option>
+                </select>
             </div>
 
             <!-- Tableau des résultats -->
@@ -109,6 +105,7 @@
                                 <th>Code Postal</th>
                                 <th>Activité</th>
                                 <th>Site Web</th>
+                                <th>Suivi</th>
                             </tr>
                         </thead>
                         <tbody id="resultsTableBody">
@@ -128,6 +125,56 @@
         <div id="errorSection" style="display: none;" class="error">
             <h3>❌ Erreur</h3>
             <p id="errorText"></p>
+        </div>
+        </div>
+        <!-- Fin Onglet Recherche -->
+
+        <!-- Contenu Onglet Suivi -->
+        <div id="onglet-suivi" class="tab-content">
+            <div class="card">
+                <h2>📊 Pipeline de prospection</h2>
+                <p style="color: #666; margin-bottom: 20px;">Vue d'ensemble de toutes vos entreprises en suivi</p>
+
+                <div id="pipelineContainer"></div>
+            </div>
+        </div>
+        <!-- Fin Onglet Suivi -->
+
+    </div>
+
+    <!-- Modal de suivi -->
+    <div id="suiviModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="modal-close" onclick="fermerModalSuivi()">&times;</span>
+            <h2>📋 Gérer le suivi</h2>
+            <div id="suiviEntrepriseInfo" style="margin-bottom: 20px; padding: 15px; background: #f5f7fa; border-radius: 8px;"></div>
+
+            <form id="suiviForm">
+                <input type="hidden" id="suiviSiret" />
+
+                <div class="form-group">
+                    <label for="suiviStatut">Statut</label>
+                    <select id="suiviStatut" required>
+                        <option value="">Sélectionner un statut...</option>
+                        <option value="a_demarcher">À démarcher</option>
+                        <option value="contacte">Contacté</option>
+                        <option value="negociation">En négociation</option>
+                        <option value="interesse">Intéressé</option>
+                        <option value="refuse">Refusé</option>
+                        <option value="client">Client</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="suiviNotes">Notes</label>
+                    <textarea id="suiviNotes" rows="4" placeholder="Ajouter des notes sur cette entreprise..."></textarea>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Enregistrer</button>
+                    <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="fermerModalSuivi()">Annuler</button>
+                </div>
+            </form>
         </div>
     </div>
 
