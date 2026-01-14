@@ -135,13 +135,22 @@ def rechercher_entreprises(secteur, ville="", code_postal="", limite=50):
 
     query = " ".join(query_parts) if query_parts else ""
 
+    # Demander plus de résultats car on va filtrer après
+    per_page = 25 if not code_postal else 25  # L'API limite à 25 max
+
     params = {
-        "q": query if query else "*",  # * pour rechercher tout si pas de secteur
-        "per_page": min(limite, 25),  # L'API limite à 25 résultats maximum
-        "page": 1
+        "per_page": per_page,
+        "page": 1,
+        # Filtrer sur les TPE et petites entreprises uniquement (0-49 salariés)
+        # 00: 0 salarié, 01: 1-2, 02: 3-5, 03: 6-9, 11: 10-19, 12: 20-49
+        "tranche_effectif_salarie": "00,01,02,03,11,12"
     }
 
-    # Le code postal est un filtre géographique PRÉCIS (recommandé)
+    # Ajouter la query seulement si elle existe
+    if query:
+        params["q"] = query
+
+    # Utiliser le filtre code_postal de l'API, puis on filtrera sur le siège côté Python
     if code_postal:
         params["code_postal"] = code_postal
 
@@ -155,12 +164,21 @@ def rechercher_entreprises(secteur, ville="", code_postal="", limite=50):
 
         entreprises = []
         for result in data.get('results', []):
+            # Récupérer le SIRET depuis l'objet siege (où il se trouve réellement)
+            siege = result.get('siege', {})
+            siret = siege.get('siret', 'N/A')
+            code_postal_siege = siege.get('code_postal', '')
+
+            # Filtrer : si un code postal est recherché, ne garder que les sièges correspondants
+            if code_postal and code_postal_siege != code_postal:
+                continue  # Ignorer cette entreprise si le siège n'est pas dans le bon code postal
+
             entreprise = {
                 'nom': result.get('nom_complet') or result.get('nom_raison_sociale', 'N/A'),
-                'siret': result.get('siret', 'N/A'),
-                'adresse': result.get('siege', {}).get('adresse', 'N/A'),
-                'ville': result.get('siege', {}).get('commune', 'N/A'),
-                'code_postal': result.get('siege', {}).get('code_postal', 'N/A'),
+                'siret': siret,
+                'adresse': siege.get('adresse', 'N/A'),
+                'ville': siege.get('libelle_commune', 'N/A'),
+                'code_postal': code_postal_siege or 'N/A',
                 'activite': result.get('activite_principale', 'N/A'),
                 'nombre_etablissements': result.get('nombre_etablissements', 0)
             }

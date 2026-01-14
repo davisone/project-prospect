@@ -412,16 +412,17 @@ function ouvrirModalSuivi(siret, nomEntreprise) {
     // Afficher les infos de l'entreprise
     infoDiv.innerHTML = `<strong>${nomEntreprise}</strong><br><small>SIRET: ${siret}</small>`;
 
-    // Remplir le formulaire avec les données existantes
-    document.getElementById('suiviSiret').value = siret;
-    const suivi = obtenirSuivi(siret);
+    // TOUJOURS réinitialiser le formulaire d'abord pour éviter les données résiduelles
+    suiviForm.reset();
 
+    // Définir le SIRET
+    document.getElementById('suiviSiret').value = siret;
+
+    // Remplir le formulaire avec les données existantes si elles existent
+    const suivi = obtenirSuivi(siret);
     if (suivi) {
         document.getElementById('suiviStatut').value = suivi.statut;
         document.getElementById('suiviNotes').value = suivi.notes;
-    } else {
-        suiviForm.reset();
-        document.getElementById('suiviSiret').value = siret;
     }
 
     modal.style.display = 'flex';
